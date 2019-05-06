@@ -1,3 +1,7 @@
+const SHA256 = require('crypto-js/sha256');
+const BlockClass = require('./block.js');
+const bitcoinMessage = require('bitcoinjs-message');
+
 /**
  *                          Blockchain Class
  *  The Blockchain class contain the basics functions to create your own private blockchain
@@ -7,10 +11,6 @@
  *  isn't a persisten storage method.
  *  
  */
-
-const SHA256 = require('crypto-js/sha256');
-const BlockClass = require('./block.js');
-const bitcoinMessage = require('bitcoinjs-message');
 
 class Blockchain {
 
@@ -56,7 +56,7 @@ class Blockchain {
      * or reject if an error happen during the execution.
      * You will need to check for the height to assign the `previousBlockHash`,
      * assign the `timestamp` and the correct `height`...At the end you need to 
-     * create the `block hash` and push the block into the chain array. Don't for get 
+     * create the `block hash` and push the block into the chain array. Don't forget 
      * to update the `this.height`
      * Note: the symbol `_` in the method name indicates in the javascript convention 
      * that this method is a private method. 
@@ -64,6 +64,18 @@ class Blockchain {
     _addBlock(block) {
         let self = this;
         return new Promise(async (resolve, reject) => {
+
+            if (this.chain.length > 0) {
+                
+                block.previousHash = this.getLatestBlock().hash;
+            }
+
+            block.timeStamp = new Date().getTime().toString().slice(0, -3);
+            block.height = this.chain.length;
+            block.hash = SHA256(JSON.stringify(block)).toString();
+
+            this.chain.push(block);
+            this.height = this.length;
            
         });
     }
