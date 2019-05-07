@@ -42,6 +42,7 @@ class Block {
             const currentHash = this.hash;                                
             
             // Recalculate the hash of the Block
+            this.hash = "";
             const hashToBe = SHA256(JSON.stringify(self)).toString();
 
             // Comparing if the hashes changed

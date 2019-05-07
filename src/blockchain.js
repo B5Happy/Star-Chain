@@ -44,8 +44,9 @@ class Blockchain {
      * Utility method that return a Promise that will resolve with the height of the chain
      */
     getChainHeight() {
+        let self = this;
         return new Promise((resolve, reject) => {
-            resolve(this.height);
+            resolve(self.height);
         });
     }
 
@@ -69,7 +70,7 @@ class Blockchain {
                 
                 if (this.chain.length > 0) {
                 
-                    block.previousHash = this.getLatestBlock().hash;
+                    block.previousHash = this.chain[this.chain.length - 1].hash;
                 }
 
                 block.time = new Date().getTime().toString().slice(0, -3);
@@ -77,7 +78,7 @@ class Blockchain {
                 block.hash = SHA256(JSON.stringify(block)).toString();
 
                 this.chain.push(block);
-                this.height = this.length;
+                this.height = this.chain.length;
 
                 resolve('the block has been add.')
             }
@@ -160,7 +161,7 @@ class Blockchain {
             try {
                 
                 let blocks = self.chain.filter(block => block.hash === hash);
-                if (block) {
+                if (blocks) {
                     resolve(blocks);
                 } else {
                     resolve(null);
