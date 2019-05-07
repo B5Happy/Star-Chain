@@ -49,10 +49,10 @@ class Block {
             // Returning the Block is valid
             if (currentHash == hashToBe) {
                 
-                resolve("the Block is valid");
+                resolve(true);
             } else {
 
-                reject("the Block is not valid")
+                reject(false)
             }
 
 

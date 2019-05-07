@@ -65,24 +65,31 @@ class Blockchain {
         let self = this;
         return new Promise(async (resolve, reject) => {
 
-            if (this.chain.length > 0) {
+            try {
                 
-                block.previousHash = this.getLatestBlock().hash;
+                if (this.chain.length > 0) {
+                
+                    block.previousHash = this.getLatestBlock().hash;
+                }
+
+                block.time = new Date().getTime().toString().slice(0, -3);
+                block.height = this.chain.length;
+                block.hash = SHA256(JSON.stringify(block)).toString();
+
+                this.chain.push(block);
+                this.height = this.length;
+
+                resolve('the block has been add.')
             }
-
-            block.timeStamp = new Date().getTime().toString().slice(0, -3);
-            block.height = this.chain.length;
-            block.hash = SHA256(JSON.stringify(block)).toString();
-
-            this.chain.push(block);
-            this.height = this.length;
-           
+            catch(error){
+                reject(error)
+            }
         });
     }
 
     /**
      * The requestMessageOwnershipVerification(address) method
-     * will allow you  to request a message that you will use to
+     * will allow you to request a message that you will use to
      * sign it with your Bitcoin Wallet (Electrum or Bitcoin Core)
      * This is the first step before submit your Block.
      * The method return a Promise that will resolve with the message to be signed
@@ -90,7 +97,8 @@ class Blockchain {
      */
     requestMessageOwnershipVerification(address) {
         return new Promise((resolve) => {
-            
+            let signed = ` ${address}:${new Date().getTime().toString().slice(0, -3)}:starRegistry`;
+            resolve(signed);
         });
     }
 
@@ -114,7 +122,28 @@ class Blockchain {
     submitStar(address, message, signature, star) {
         let self = this;
         return new Promise(async (resolve, reject) => {
+
+            try {
+                let timeOfMessage = parseInt(message.split(':')[1]);
+                let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
             
+                if (currentTime - timeOfMessage < 300) {
+
+                    let verifySignature = bitcoinMessage.verify(message, address, signature);
+
+                    if (verifySignature == true) {
+                    
+                        let data = { owner: address, star: star };
+
+                        let block = new Block(data);
+                        _addBlock(block);
+                        resolve(block);
+                    }
+                }
+            }
+            catch (error) {
+                reject(error);
+            }
         });
     }
 
@@ -127,6 +156,20 @@ class Blockchain {
     getBlockByHash(hash) {
         let self = this;
         return new Promise((resolve, reject) => {
+
+            try {
+                
+                let blocks = self.chain.filter(block => block.hash === hash);
+                if (block) {
+                    resolve(blocks);
+                } else {
+                    resolve(null);
+                }
+            }
+            catch(error) {
+                
+                reject(error);
+            }
            
         });
     }
@@ -158,6 +201,20 @@ class Blockchain {
         let self = this;
         let stars = [];
         return new Promise((resolve, reject) => {
+
+            try {
+                let a = self.chain.filter(block => block.body.getBdata().owner == address);
+                stars.push(a);
+                if (stars) {
+                    resolve(stars);
+                } else {
+                    resolve(stars);
+                }
+            }
+            catch(error) {
+
+                reject(error);
+            }
             
         });
     }
@@ -172,7 +229,20 @@ class Blockchain {
         let self = this;
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
+
+            for (let i = 1; i < self.height; i++){
+
+                let status = this.chain[i].validate();
+
+                if (status === false && this.chain[i].previousHash != this.chain[i-1].hash) {
+
+                    errorLog.push(this.chain[i])
+
+                }
+
+            }
             
+            resolve(errorLog);
         });
     }
 
